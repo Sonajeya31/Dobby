@@ -133,7 +133,11 @@ bool DobbyWorkQueue::runUntil(const std::chrono::steady_clock::time_point &deadl
             locker.unlock();
 
             if (work.func)
+            {
                 work.func();
+
+            }
+               
 
             // signal completion of work item
             mWorkCompleteLock.lock();
@@ -163,7 +167,11 @@ bool DobbyWorkQueue::runUntil(const std::chrono::steady_clock::time_point &deadl
         mWorkQueue.pop();
 
         if (work.func)
-            work.func();
+        {
+           work.func();
+           AI_LOG_DEBUG("Sona After completion of work function");
+        }
+            
 
         // signal completion of work item
         mWorkCompleteLock.lock();

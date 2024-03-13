@@ -1190,6 +1190,7 @@ void Dobby::stop(std::shared_ptr<AI_IPC::IAsyncReplySender> replySender)
             {
                 // Try and stop the container
                 bool result = manager->stopContainer(descriptor, force);
+                AI_LOG_INFO("Sona printing result boolean value %d",result);
 
                 // Fire off the reply
                 replySender->sendReply({ result });
