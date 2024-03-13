@@ -456,18 +456,12 @@ bool DobbyRunC::killCont(const ContainerId& id, int signal, bool all) const
     // get the return code, 0 for success, 1 for failure
     bool returnValue = (WEXITSTATUS(status) == EXIT_SUCCESS);
 
-    //isr function definition
-    void isr()
-    {
-    AI_LOG_ERROR(" Sona in SIGTERM service handler");
-    system("systemctl status wpeframework > /opt/logs/wpe_status.log");
-    system("systemctl status dbus > /opt/logs/dbus_status.log");
-    }
+    
 
     // Fix problem where SIGTERM was masked and containers never exited
     if(signal == SIGTERM)
     {
-        isr();
+       
         int retryCounter = 10;
 
         // get current container status
