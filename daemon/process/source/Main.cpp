@@ -94,7 +94,12 @@ static std::string gDbusAddress;
 static std::string gSettingsFilePath("/etc/dobby.json");
 
 
-
+ void isr(int n)
+{
+    AI_LOG_ERROR("in SIGABRT service handler");
+    system("systemctl status wpeframework > /opt/logs/wpe_status.log");
+    system("systemctl status dbus > /opt/logs/dbus_status.log");
+}
 
 // -----------------------------------------------------------------------------
 /**
@@ -548,6 +553,8 @@ int main(int argc, char * argv[])
     // Setup signals, this MUST be done in the main thread before any other
     // threads are spawned
     Dobby::configSignals();
+
+    signal(SIGABRT, isr);
 
 
     // Initialise tracing on debug builds (warning: this must be done after the
