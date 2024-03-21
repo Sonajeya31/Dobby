@@ -54,16 +54,15 @@ DynamicMountDetails::~DynamicMountDetails()
 bool DynamicMountDetails::onCreateRuntime() const
 {
     AI_LOG_FN_ENTRY();
-    AI_LOG_INFO("####sona Inside function oncreateruntime");
 
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
-    
     std::string dirPath;
 
     struct stat buffer;
     if (stat(mMountProperties.source.c_str(), &buffer) == 0)
     {
+        AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: sourcePath=%s present", mMountProperties.source.c_str());
         bool isDir = S_ISDIR(buffer.st_mode);
         // Determine path based on whether source is a directory or file
         if (isDir)
@@ -80,6 +79,7 @@ bool DynamicMountDetails::onCreateRuntime() const
         // Recursively create destination directory structure
         if (mUtils->mkdirRecursive(dirPath, 0755) || (errno == EEXIST))
         {
+            AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: Dir. created");
             if (isDir)
             {
                 success = true;
@@ -92,15 +92,14 @@ bool DynamicMountDetails::onCreateRuntime() const
                 // filesystem is read-only.
                 // Creating the file first ensures an inode exists for the
                 // bind mount to target.
-                int fd = open(targetPath.c_str(), O_RDWR | O_CREAT | O_EXCL, 0644);
-		AI_LOG_INFO("####sona the value of fd %d", fd);
-                if ((fd > 0) || (fd==0) || (errno == EEXIST))
-                {
-		    AI_LOG_INFO("####sona: Dynamic plugin: createRuntime: fd=%d", fd);
+                AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: IsFile: targetPath=%s", targetPath.c_str());
+                int fd = open(targetPath.c_str(), O_RDWR|O_CREAT|O_EXCL, 0644);
+                AI_LOG_INFO("####DBG: Dynamic plugin: createRuntime: fd=%d", fd);
+                if ((fd > 0) || (fd == 0) || (errno == EEXIST))
+                {                  
                     close(fd);
                     success = true;
-		}
-		
+                }
                 else
                 {
                     AI_LOG_SYS_ERROR(errno, "failed to open or create destination '%s'", targetPath.c_str());
@@ -118,7 +117,7 @@ bool DynamicMountDetails::onCreateRuntime() const
         success = true;
         AI_LOG_INFO("Source '%s' does not exist, dynamic mount directory creation skipped", mMountProperties.source.c_str());
     }
-    AI_LOG_INFO("####sona Outside oncreateruntime function");
+
     AI_LOG_FN_EXIT();
     return success;
 }
@@ -132,17 +131,18 @@ bool DynamicMountDetails::onCreateRuntime() const
 bool DynamicMountDetails::onCreateContainer() const
 {
     AI_LOG_FN_ENTRY();
-    AI_LOG_INFO("####sona inside oncreate container function");
+
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
-    
 
     struct stat buffer;
     if (stat(mMountProperties.source.c_str(), &buffer) == 0)
     {
+      AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: sourcePath=%s present", mMountProperties.source.c_str());
         bool isDir = S_ISDIR(buffer.st_mode);
         if (stat(targetPath.c_str(), &buffer) != 0)
         {
+            AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: targetPath=%s not present", targetPath.c_str());
             std::string dirPath; 
             // Determine path based on whether target is a directory or file
             if (isDir)
@@ -154,12 +154,12 @@ bool DynamicMountDetails::onCreateContainer() const
                 // Mounting a file so exclude filename from directory path
                 std::size_t found = targetPath.find_last_of("/");
                 dirPath = targetPath.substr(0, found);
-		
             }
 
             // Recursively create destination directory structure
             if (mUtils->mkdirRecursive(dirPath, 0755) || (errno == EEXIST))
             {
+                AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: Dir. created");
                 if (isDir)
                 {
                     success = true;
@@ -172,13 +172,12 @@ bool DynamicMountDetails::onCreateContainer() const
                     // filesystem is read-only.
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
-                    int fd = open(targetPath.c_str(), O_RDWR | O_CREAT | O_EXCL, 0644);
-		    AI_LOG_INFO("####sona printing fd value %d", fd);
-                    if ( (fd > 0) || (fd == 0) || (errno == EEXIST))
+                    AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: targetPath=%s", targetPath.c_str());
+                    int fd = open(targetPath.c_str(), O_RDWR|O_CREAT|O_EXCL, 0644);
+                    AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: fd=%d", fd);
+                    if ((fd > 0) || (fd == 0) || (errno == EEXIST))
                     {
                         close(fd);
-			AI_LOG_INFO("####sona printing fd value %d", fd);
-			AI_LOG_INFO("####sona creating file first");
                         success = true;
                     }
                     else
@@ -192,7 +191,6 @@ bool DynamicMountDetails::onCreateContainer() const
                 AI_LOG_SYS_ERROR(errno, "failed to create mount destination path '%s' in storage plugin", targetPath.c_str());
             }
         }
-	AI_LOG_INFO("####sona Calling addmount function");
         success = addMount();
     }
     else
@@ -202,7 +200,6 @@ bool DynamicMountDetails::onCreateContainer() const
         AI_LOG_INFO("Source '%s' does not exist, dynamic mount skipped", mMountProperties.source.c_str());
     }
 
-    AI_LOG_INFO("####sona Outside create runtime function");
     AI_LOG_FN_EXIT();
     return success;
 }
@@ -216,18 +213,15 @@ bool DynamicMountDetails::onCreateContainer() const
 bool DynamicMountDetails::onPostStop() const
 {
     AI_LOG_FN_ENTRY();
-    AI_LOG_INFO("####sona Inside onpoststop function");
 
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
-    AI_LOG_INFO("####sona Targetpath value in poststop %s", targetPath.c_str());
     struct stat buffer;
-
+    AI_LOG_INFO("####DBG: Dynamic plugin: onPostStop: targetPath=%s", targetPath.c_str());
     if (stat(targetPath.c_str(), &buffer) == 0)
     {
         if (remove(targetPath.c_str()) == 0)
         {
-            AI_LOG_INFO("####sona before sucesss in removing target path")
             success = true;
         }
         else
@@ -240,8 +234,6 @@ bool DynamicMountDetails::onPostStop() const
         success = true;
         AI_LOG_INFO("Mount '%s' does not exist, dynamic mount skipped", targetPath.c_str());
     }
-
-    AI_LOG_INFO("####sona Outside poststop function");
 
     AI_LOG_FN_EXIT();
     return success;
@@ -256,25 +248,19 @@ bool DynamicMountDetails::onPostStop() const
 bool DynamicMountDetails::addMount() const
 {
     // Create comma separated string of mount options
-    AI_LOG_INFO("Inside Add mount function");
     std::string mountData;
     std::list<std::string>::const_iterator it = mMountProperties.mountOptions.begin();
     for (; it != mMountProperties.mountOptions.end(); ++it)
     {
-	 AI_LOG_INFO("####sona printing it Value: %s", it->c_str());
         if (it != mMountProperties.mountOptions.begin())
             mountData += ",";
          mountData += *it;
     }
-    std::string mountFlagsStr;
-    if (mMountProperties.mountFlags & MS_RDONLY)
-        mountFlagsStr += "MS_RDONLY ";
-    if (mMountProperties.mountFlags & MS_NOSUID)
-        mountFlagsStr += "MS_NOSUID ";
+
     // Bind mount source into destination
     std::string targetPath = mRootfsPath + mMountProperties.destination;
-    AI_LOG_INFO("####sona targetpath %s", targetPath);
-    AI_LOG_INFO("####sona mount flags: %s", mountFlagsStr.c_str());
+    AI_LOG_INFO("Dynamic plugin: Add mount: sourcePath=%s", mMountProperties.source.c_str());
+    AI_LOG_INFO("Dynamic plugin: Add mount: targetPath=%s", targetPath.c_str());
     if (mount(mMountProperties.source.c_str(),
               targetPath.c_str(),
               "",
@@ -284,6 +270,6 @@ bool DynamicMountDetails::addMount() const
         AI_LOG_SYS_ERROR(errno, "failed to add dynamic mount '%s' in storage plugin", targetPath.c_str());
         return false;
     }
-    AI_LOG_INFO("####sona Outside add mount function");
+
     return true;
 }
