@@ -132,7 +132,7 @@ bool DynamicMountDetails::onCreateRuntime() const
 bool DynamicMountDetails::onCreateContainer() const
 {
     AI_LOG_FN_ENTRY();
-    AI_LOG_INFO("####sona inside oncreate container function")l
+    AI_LOG_INFO("####sona inside oncreate container function");
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
     AI_LOG_INFO("####sona printing targetpath %s", targetpath);
