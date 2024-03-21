@@ -58,7 +58,7 @@ bool DynamicMountDetails::onCreateRuntime() const
 
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
-    AI_LOG_INFO("####sona Printing Target path value :%s",targetPath);
+    
     std::string dirPath;
 
     struct stat buffer;
@@ -135,7 +135,7 @@ bool DynamicMountDetails::onCreateContainer() const
     AI_LOG_INFO("####sona inside oncreate container function");
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
-    AI_LOG_INFO("####sona printing targetpath %s", targetpath);
+    
 
     struct stat buffer;
     if (stat(mMountProperties.source.c_str(), &buffer) == 0)
@@ -154,7 +154,7 @@ bool DynamicMountDetails::onCreateContainer() const
                 // Mounting a file so exclude filename from directory path
                 std::size_t found = targetPath.find_last_of("/");
                 dirPath = targetPath.substr(0, found);
-		AI_LOG_INFO("####sona exclude file name from dir path%s,dirPath");
+		
             }
 
             // Recursively create destination directory structure
