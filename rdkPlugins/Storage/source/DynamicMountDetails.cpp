@@ -92,12 +92,15 @@ bool DynamicMountDetails::onCreateRuntime() const
                 // filesystem is read-only.
                 // Creating the file first ensures an inode exists for the
                 // bind mount to target.
-                int fd = open(targetPath.c_str(), O_RDWR | O_CREAT, 0644);
-                if ((fd == 0) || (errno == EEXIST))
+                int fd = open(targetPath.c_str(), O_RDWR | O_CREAT | O_EXCL, 0644);
+		AI_LOG_INFO("####sona the value of fd %d", fd);
+                if ((fd > 0) || (fd==0) || (errno == EEXIST))
                 {
+		    AI_LOG_INFO("####sona: Dynamic plugin: createRuntime: fd=%d", fd);
                     close(fd);
                     success = true;
-                }
+		}
+		
                 else
                 {
                     AI_LOG_SYS_ERROR(errno, "failed to open or create destination '%s'", targetPath.c_str());
@@ -169,10 +172,12 @@ bool DynamicMountDetails::onCreateContainer() const
                     // filesystem is read-only.
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
-                    int fd = open(targetPath.c_str(), O_RDWR | O_CREAT, 0644);
-                    if ((fd == 0) || (errno == EEXIST))
+                    int fd = open(targetPath.c_str(), O_RDWR | O_CREAT | O_EXCL, 0644);
+		    AI_LOG_INFO("####sona printing fd value %d", fd);
+                    if ( (fd > 0) || (fd == 0) || (errno == EEXIST))
                     {
                         close(fd);
+			AI_LOG_INFO("####sona printing fd value %d", fd);
 			AI_LOG_INFO("####sona creating file first");
                         success = true;
                     }
