@@ -135,7 +135,7 @@ bool DynamicMountDetails::onCreateContainer() const
     AI_LOG_INFO("####sona inside oncreate container function")l
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
-    AI_LOG_INFO("####sona printing targetpath %s, targetpath);
+    AI_LOG_INFO("####sona printing targetpath %s", targetpath);
 
     struct stat buffer;
     if (stat(mMountProperties.source.c_str(), &buffer) == 0)
@@ -220,7 +220,7 @@ bool DynamicMountDetails::onPostStop() const
 
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
-    AI_LOG_INFO("####sona Targetpath value in poststop %s, targetPath);
+    AI_LOG_INFO("####sona Targetpath value in poststop %s", targetPath);
     struct stat buffer;
 
     if (stat(targetPath.c_str(), &buffer) == 0)
