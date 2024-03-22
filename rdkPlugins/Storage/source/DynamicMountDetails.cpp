@@ -234,7 +234,7 @@ bool DynamicMountDetails::onPostStop() const
         success = true;
         AI_LOG_INFO("Mount '%s' does not exist, dynamic mount skipped", targetPath.c_str());
     }
-
+    AI_LOG_INFO("####sona On poststop, the dynamic amount has been removed");
     AI_LOG_FN_EXIT();
     return success;
 }
@@ -255,6 +255,7 @@ bool DynamicMountDetails::addMount() const
         if (it != mMountProperties.mountOptions.begin())
             mountData += ",";
          mountData += *it;
+         AI_LOG_INFO("####sona printing mountdata %s", mountData.c_str());
     }
 
     // Bind mount source into destination
