@@ -172,27 +172,20 @@ bool DynamicMountDetails::onCreateContainer() const
                     // filesystem is read-only.
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
-                     int fd = open(targetPath.c_str(), O_RDONLY | O_CREAT, 0644);
-                     AI_LOG_INFO("####sona printing fd value %d", fd);
-                    if (fd == -1) {
-    // Handle error condition
-                        AI_LOG_SYS_ERROR(errno, "Failed to open or create file '%s'", targetPath.c_str());
-                        success = false;
-                    } else {
-    // Log information about the file descriptor
-                        AI_LOG_INFO("Dynamic plugin: onCreatecontainer: fd=%d", fd);                  
 
-    // Close the file descriptor
-                   if (close(fd) != 0) {
-                      AI_LOG_SYS_ERROR(errno, "Failed to close file descriptor");
-        // Set success to false if closing the file descriptor failed
-                      success = false;
-                     } else {
-                     // Set success to true if everything succeeded
-                      success = true;
-    }
+                    FILE *file = fopen(targetPath.c_str(), "r");
+                    if (file != nullptr || errno == EEXIST)
+                    {
+                        fclose(file);
+                        success = true;
+                    }
+                    else
+                    {
+                        AI_LOG_SYS_ERROR(errno, "failed to open or create destination '%s'", targetPath.c_str());
+                    }
+                    
 }
-                }
+                
             }
             else
             {
