@@ -93,8 +93,8 @@ bool DynamicMountDetails::onCreateRuntime() const
                 // Creating the file first ensures an inode exists for the
                 // bind mount to target.
                 AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: IsFile: targetPath=%s", targetPath.c_str());
-                int fd = open(targetPath.c_str(), O_RDONLY|O_CREAT|O_EXCL, 0644);
-                AI_LOG_INFO("####DBG: Dynamic plugin: createRuntime: fd=%d", fd);
+               
+               
                
                     FILE *file = fopen(targetPath.c_str(), "r");
                     if (file != nullptr || errno == EEXIST)
@@ -175,8 +175,7 @@ bool DynamicMountDetails::onCreateContainer() const
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
                     AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: targetPath=%s", targetPath.c_str());
-                    int fd = open(targetPath.c_str(), O_RDONLY|O_CREAT|O_EXCL, 0644);
-                    AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: fd=%d", fd);
+                   
                    
                     FILE *file = fopen(targetPath.c_str(), "r");
                     if (file != nullptr || errno == EEXIST)
