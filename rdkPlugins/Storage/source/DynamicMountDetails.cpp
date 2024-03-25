@@ -93,19 +93,24 @@ bool DynamicMountDetails::onCreateRuntime() const
                 // Creating the file first ensures an inode exists for the
                 // bind mount to target.
                 AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: IsFile: targetPath=%s", targetPath.c_str());
-               
-               
-               
-                    FILE *file = fopen(targetPath.c_str(), "r");
-                    if (file != nullptr || errno == EEXIST)
+                int fd = open(targetPath.c_str(), O_RDONLY|O_CREAT|O_EXCL, 0644);
+                AI_LOG_INFO("####DBG: Dynamic plugin: createRuntime: fd=%d", fd);
+                 if(fd == -1)
                     {
-                        fclose(file);
-                        success = true;
+                      AI_LOG_INFO("####DBG: There is some error opening the file");
                     }
-                    else
-                    {
-                        AI_LOG_SYS_ERROR(errno, "failed to open or create destination '%s'", targetPath.c_str());
-                    }
+                if ((fd > 0) || (errno == EEXIST))
+                {                  
+                    close(fd);
+                     AI_LOG_INFO("####DBG Printing the value of fd %d", fd);
+                    AI_LOG_INFO("####DBG File closed successfully");
+                    
+                    success = true;
+                }
+                else
+                {
+                    AI_LOG_SYS_ERROR(errno, "failed to open or create destination '%s'", targetPath.c_str());
+                }
             }
         }
         else
@@ -175,12 +180,17 @@ bool DynamicMountDetails::onCreateContainer() const
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
                     AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: targetPath=%s", targetPath.c_str());
-                   
-                   
-                    FILE *file = fopen(targetPath.c_str(), "r");
-                    if (file != nullptr || errno == EEXIST)
+                    int fd = open(targetPath.c_str(), O_RDONLY|O_CREAT|O_EXCL, 0644);
+                    AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: fd=%d", fd);
+                    if(fd == -1)
                     {
-                        fclose(file);
+                      AI_LOG_INFO("####DBG: There is some error opening the file");
+                    }
+                    if ((fd > 0) || (errno == EEXIST))
+                    {
+                        close(fd);
+                        AI_LOG_INFO("####DBG Printing the value of fd %d", fd);
+                        AI_LOG_INFO("####DBG File closed successfully");
                         success = true;
                     }
                     else
