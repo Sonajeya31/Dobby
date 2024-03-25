@@ -62,6 +62,7 @@ bool DynamicMountDetails::onCreateRuntime() const
     struct stat buffer;
     if (stat(mMountProperties.source.c_str(), &buffer) == 0)
     {
+        AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: sourcePath=%s present", mMountProperties.source.c_str());
         bool isDir = S_ISDIR(buffer.st_mode);
         // Determine path based on whether source is a directory or file
         if (isDir)
@@ -78,6 +79,7 @@ bool DynamicMountDetails::onCreateRuntime() const
         // Recursively create destination directory structure
         if (mUtils->mkdirRecursive(dirPath, 0755) || (errno == EEXIST))
         {
+            AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: Dir. created");
             if (isDir)
             {
                 success = true;
@@ -90,16 +92,20 @@ bool DynamicMountDetails::onCreateRuntime() const
                 // filesystem is read-only.
                 // Creating the file first ensures an inode exists for the
                 // bind mount to target.
-                int fd = open(targetPath.c_str(), O_RDONLY | O_CREAT, 0644);
-                if ((fd == 0) || (errno == EEXIST))
-                {
-                    close(fd);
-                    success = true;
-                }
-                else
-                {
-                    AI_LOG_SYS_ERROR(errno, "failed to open or create destination '%s'", targetPath.c_str());
-                }
+                AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: IsFile: targetPath=%s", targetPath.c_str());
+                int fd = open(targetPath.c_str(), O_RDONLY|O_CREAT|O_EXCL, 0644);
+                AI_LOG_INFO("####DBG: Dynamic plugin: createRuntime: fd=%d", fd);
+               
+                    FILE *file = fopen(targetPath.c_str(), "r");
+                    if (file != nullptr || errno == EEXIST)
+                    {
+                        fclose(file);
+                        success = true;
+                    }
+                    else
+                    {
+                        AI_LOG_SYS_ERROR(errno, "failed to open or create destination '%s'", targetPath.c_str());
+                    }
             }
         }
         else
@@ -134,9 +140,11 @@ bool DynamicMountDetails::onCreateContainer() const
     struct stat buffer;
     if (stat(mMountProperties.source.c_str(), &buffer) == 0)
     {
+      AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: sourcePath=%s present", mMountProperties.source.c_str());
         bool isDir = S_ISDIR(buffer.st_mode);
         if (stat(targetPath.c_str(), &buffer) != 0)
         {
+            AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: targetPath=%s not present", targetPath.c_str());
             std::string dirPath; 
             // Determine path based on whether target is a directory or file
             if (isDir)
@@ -153,6 +161,7 @@ bool DynamicMountDetails::onCreateContainer() const
             // Recursively create destination directory structure
             if (mUtils->mkdirRecursive(dirPath, 0755) || (errno == EEXIST))
             {
+                AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: Dir. created");
                 if (isDir)
                 {
                     success = true;
@@ -165,10 +174,14 @@ bool DynamicMountDetails::onCreateContainer() const
                     // filesystem is read-only.
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
-                    int fd = open(targetPath.c_str(), O_RDONLY | O_CREAT, 0644);
-                    if ((fd == 0) || (errno == EEXIST))
+                    AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: targetPath=%s", targetPath.c_str());
+                    int fd = open(targetPath.c_str(), O_RDONLY|O_CREAT|O_EXCL, 0644);
+                    AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: fd=%d", fd);
+                   
+                    FILE *file = fopen(targetPath.c_str(), "r");
+                    if (file != nullptr || errno == EEXIST)
                     {
-                        close(fd);
+                        fclose(file);
                         success = true;
                     }
                     else
@@ -208,7 +221,7 @@ bool DynamicMountDetails::onPostStop() const
     bool success = false;
     std::string targetPath = mRootfsPath + mMountProperties.destination;
     struct stat buffer;
-
+    AI_LOG_INFO("####DBG: Dynamic plugin: onPostStop: targetPath=%s", targetPath.c_str());
     if (stat(targetPath.c_str(), &buffer) == 0)
     {
         if (remove(targetPath.c_str()) == 0)
@@ -250,6 +263,8 @@ bool DynamicMountDetails::addMount() const
 
     // Bind mount source into destination
     std::string targetPath = mRootfsPath + mMountProperties.destination;
+    AI_LOG_INFO("Dynamic plugin: Add mount: sourcePath=%s", mMountProperties.source.c_str());
+    AI_LOG_INFO("Dynamic plugin: Add mount: targetPath=%s", targetPath.c_str());
     if (mount(mMountProperties.source.c_str(),
               targetPath.c_str(),
               "",
