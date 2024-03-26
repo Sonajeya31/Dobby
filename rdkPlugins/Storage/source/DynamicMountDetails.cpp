@@ -68,7 +68,7 @@ bool DynamicMountDetails::onCreateRuntime() const
         if (isDir)
         {
             dirPath = targetPath;
-            AI_LOG_INFO("####DBG oncreateruntime if loop %s",dirpath.c_str());
+            AI_LOG_INFO("####DBG oncreateruntime if loop %s",dirPath.c_str());
         }
         else
         {
