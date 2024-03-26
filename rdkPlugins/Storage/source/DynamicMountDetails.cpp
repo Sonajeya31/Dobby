@@ -68,12 +68,14 @@ bool DynamicMountDetails::onCreateRuntime() const
         if (isDir)
         {
             dirPath = targetPath;
+            AI_LOG_INFO("####DBG oncreateruntime if loop %s",dirpath.c_str());
         }
         else
         {
             // Mounting a file so exclude filename from directory path
             std::size_t found = targetPath.find_last_of("/");
             dirPath = targetPath.substr(0, found);
+            AI_LOG_INFO("####DBG oncreateruntime else loop %s",dirpath.c_str());
         }
 
         // Recursively create destination directory structure
@@ -93,7 +95,7 @@ bool DynamicMountDetails::onCreateRuntime() const
                 // Creating the file first ensures an inode exists for the
                 // bind mount to target.
                 AI_LOG_INFO("####DBG: Dynamic plugin: onCreateRuntime: IsFile: targetPath=%s", targetPath.c_str());
-                int fd = open(targetPath.c_str(), O_RDONLY, 0644);
+                int fd = open(targetPath.c_str(), O_RDONLY|O_CREAT|O_EXCL, 0644);
                 AI_LOG_INFO("####DBG: Dynamic plugin: createRuntime: fd=%d", fd);
                  if(fd == -1)
                     {
@@ -155,12 +157,14 @@ bool DynamicMountDetails::onCreateContainer() const
             if (isDir)
             {
                 dirPath = targetPath;
+                 AI_LOG_INFO("####DBG: onCreateContainer Dirpath in if loop %s",dirPath.c_str());
             }
             else
             {
                 // Mounting a file so exclude filename from directory path
                 std::size_t found = targetPath.find_last_of("/");
                 dirPath = targetPath.substr(0, found);
+                AI_LOG_INFO("####DBG: onCreateContainer Dirpath in else loop %s",dirPath.c_str());
             }
 
             // Recursively create destination directory structure
@@ -169,7 +173,9 @@ bool DynamicMountDetails::onCreateContainer() const
                 AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: Dir. created");
                 if (isDir)
                 {
+                    AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: checking isdir");
                     success = true;
+                  
                 }
                 else
                 {
@@ -180,7 +186,7 @@ bool DynamicMountDetails::onCreateContainer() const
                     // Creating the file first ensures an inode exists for the
                     // bind mount to target.
                     AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: targetPath=%s", targetPath.c_str());
-                    int fd = open(targetPath.c_str(), O_RDONLY, 0644);
+                    int fd = open(targetPath.c_str(), O_RDONLY|O_CREAT|O_EXCL, 0644);
                     AI_LOG_INFO("####DBG: Dynamic plugin: onCreateContainer: IsFile: fd=%d", fd);
                     if(fd == -1)
                     {
@@ -268,6 +274,7 @@ bool DynamicMountDetails::addMount() const
         if (it != mMountProperties.mountOptions.begin())
             mountData += ",";
          mountData += *it;
+         AI_LOG_INFO("####DBG mountdate %s",mountData.c_str());
     }
 
     // Bind mount source into destination
@@ -284,5 +291,6 @@ bool DynamicMountDetails::addMount() const
         return false;
     }
 
+    AI_LOG_INFO("####DBG Add Mount function ran successfully");
     return true;
 }
