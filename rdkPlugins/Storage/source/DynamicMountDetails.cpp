@@ -75,7 +75,7 @@ bool DynamicMountDetails::onCreateRuntime() const
             // Mounting a file so exclude filename from directory path
             std::size_t found = targetPath.find_last_of("/");
             dirPath = targetPath.substr(0, found);
-            AI_LOG_INFO("####DBG oncreateruntime else loop %s",dirpath.c_str());
+            AI_LOG_INFO("####DBG oncreateruntime else loop %s",dirPath.c_str());
         }
 
         // Recursively create destination directory structure
