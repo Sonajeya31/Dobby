@@ -281,8 +281,9 @@ bool DynamicMountDetails::addMount() const
     std::string targetPath = mRootfsPath + mMountProperties.destination;
     AI_LOG_INFO("Dynamic plugin: Add mount: sourcePath=%s", mMountProperties.source.c_str());
     AI_LOG_INFO("Dynamic plugin: Add mount: targetPath=%s", targetPath.c_str());
+    AI_LOG_INFO("Dynamic plugin: Add mount: targetPath=%s", dirPath.c_str());
     if (mount(mMountProperties.source.c_str(),
-              targetPath.c_str(),
+              dirPath.c_str(),
               "",
               mMountProperties.mountFlags | MS_BIND,
               mountData.data()) != 0)
