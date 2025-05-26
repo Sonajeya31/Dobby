@@ -522,11 +522,12 @@ int main(int argc, char * argv[])
     __ai_debug_log_level = gLogLevel;
 
 
-    AI_LOG_MILESTONE("starting Dobby daemon");
+    AI_LOG_MILESTONE("Logsona: starting Dobby daemon");
 
     // Daemonise ourselves to run in the background
     if (gDaemonise)
     {
+	    AI_LOG_INFO("Logsona: Inside daemonise branch");
         daemonise();
 
         logTargets &= ~Dobby::Console;
@@ -535,6 +536,7 @@ int main(int argc, char * argv[])
     // Shutdown the console if asked to
     else if (gNoConsole)
     {
+	    AI_LOG_INFO("Logsona: Inside no-console branch");
         closeConsole();
 
         logTargets &= ~Dobby::Console;
@@ -542,30 +544,34 @@ int main(int argc, char * argv[])
     }
 
     // Create object storing Dobby settings
+     AI_LOG_INFO("Logsona: Before creating settings");
     const std::shared_ptr<Settings> settings = createSettings();
 
 
     // Setup signals, this MUST be done in the main thread before any other
     // threads are spawned
+    AI_LOG_INFO("Logsona: Before configuring signals");
     Dobby::configSignals();
 
 
     // Initialise tracing on debug builds (warning: this must be done after the
     // Dobby::configSignals() call above, because it spawns threads that mess
     // with the signal masks)
+    AI_LOG_INFO("Logsona: Before tracing initialisation");
 #if defined(AI_ENABLE_TRACING)
     PerfettoTracing::initialise();
+    AI_LOG_INFO("Logsona: After PerfettoTracing::initialise");
 #endif
 
-    AI_LOG_INFO("starting dbus service");
+    AI_LOG_INFO("Logsona: starting dbus service");
 #if defined(USE_SYSTEMD)
-    AI_LOG_INFO("Dobby built with systemd support - using sd-bus");
+    AI_LOG_INFO("Logsona: Dobby built with systemd support - using sd-bus");
 #else
-    AI_LOG_INFO("Dobby built without systemd support - using libdbus");
+    AI_LOG_INFO("Logsona: Dobby built without systemd support - using libdbus");
 #endif
-    AI_LOG_INFO("  dbus address '%s'", gDbusAddress.c_str());
-    AI_LOG_INFO("  service name '%s'", DOBBY_SERVICE);
-    AI_LOG_INFO("  object name '%s'", DOBBY_OBJECT);
+    AI_LOG_INFO("Logsona:  dbus address '%s'", gDbusAddress.c_str());
+    AI_LOG_INFO("Logsona:  service name '%s'", DOBBY_SERVICE);
+    AI_LOG_INFO("Logsona:  object name '%s'", DOBBY_OBJECT);
 
     // Create the IPC service and start it, this spawns a thread and runs the dbus
     // event loop inside it.
@@ -578,32 +584,37 @@ int main(int argc, char * argv[])
     else if (!ipcService->isServiceAvailable(DOBBY_SERVICE))
     {
         // Double check we did actually make ourselves available on the bus
-        AI_LOG_ERROR("IPC Service initialised but service %s is not available on the bus", DOBBY_SERVICE);
+        AI_LOG_ERROR("Logsona: IPC Service initialised but service %s is not available on the bus", DOBBY_SERVICE);
         rc = EXIT_FAILURE;
     }
     else
     {
+	   AI_LOG_INFO("Logsona: IPC Service available, creating Dobby object");
         // Create the dobby object and hook into the IPC service
         Dobby dobby(ipcService->getBusAddress(), ipcService, settings);
 
         // On debug builds try and detect the AI dbus addresses at startup
 #if (AI_BUILD_TYPE == AI_DEBUG)
+	AI_LOG_INFO("Logsona: Setting default AI Dbus addresses");
         dobby.setDefaultAIDbusAddresses(getAIDbusAddress(true),
                                         getAIDbusAddress(false));
 #endif // (AI_BUILD_TYPE == AI_DEBUG)
 
         // Start the service, this spawns a thread and runs the dbus event
         // loop inside it
+	 AI_LOG_INFO("Logsona: Starting IPC service");
         ipcService->start();
 
         // Milestone
-        AI_LOG_MILESTONE("started Dobby daemon");
+        AI_LOG_MILESTONE("Logsona: started Dobby daemon");
 
         // Wait till the Dobby service is terminated, this is obviously a
         // blocking call
+	AI_LOG_INFO("Logsona: Entering dobby.run()");
         dobby.run();
 
         // Stop the service and fall out
+	AI_LOG_INFO("Logsona: Stopping IPC service");
         ipcService->stop();
     }
 
