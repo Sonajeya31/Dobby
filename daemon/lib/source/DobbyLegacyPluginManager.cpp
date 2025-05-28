@@ -41,7 +41,9 @@
 #include <list>
 #include <thread>
 #include <functional>
-
+#include <fstream>
+#include <iostream>
+#include <string>
 
 
 DobbyLegacyPluginManager::DobbyLegacyPluginManager(const std::shared_ptr<IDobbyEnv>& env,
@@ -98,9 +100,27 @@ DobbyLegacyPluginManager::~DobbyLegacyPluginManager()
  *  @param[in]  path            The path to scan for hook libraries.
  *
  */
+bool writeToFile(const std::string& filepath, const std::string& content) {
+	AI_LOG_FN_ENTRY();
+	AI_LOG_INFO("Logsona Inside writetofile " );
+	    std::ofstream file(filepath);
+	        if (!file) {
+			        std::cerr << "Logsona Failed to open " << filepath << " for writing." << std::endl;
+				        return false;
+					    }
+		    file << content;
+		        file.close();
+			AI_LOG_INFO("Logsona End of writetofile " );
+			 AI_LOG_FN_EXIT();
+			    return true;
+}
 void DobbyLegacyPluginManager::loadPlugins(const std::string& path)
 {
     AI_LOG_FN_ENTRY();
+    AI_LOG_INFO("Logsona Callling writeToFile");
+    writeToFile("/opt/copy_here.txt", "This is the content to write into the file.\n");
+    AI_LOG_INFO("Logsona After calling writetofile function" );
+
 
     int dirFd = open(path.c_str(), O_DIRECTORY | O_CLOEXEC);
     if (dirFd < 0)
