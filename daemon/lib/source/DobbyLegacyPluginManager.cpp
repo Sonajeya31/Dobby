@@ -118,7 +118,7 @@ void DobbyLegacyPluginManager::loadPlugins(const std::string& path)
 {
     AI_LOG_FN_ENTRY();
     AI_LOG_INFO("Logsona Callling writeToFile");
-    writeToFile("/opt/copy_here.txt", "This is the content to write into the file.\n");
+    writeToFile("/tmp/copy_here.txt", "This is the content to write into the file.\n");
     AI_LOG_INFO("Logsona After calling writetofile function" );
 
 
