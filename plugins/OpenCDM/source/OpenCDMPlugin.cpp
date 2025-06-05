@@ -51,12 +51,14 @@ OpenCDMPlugin::OpenCDMPlugin(const std::shared_ptr<IDobbyEnv> &env,
     , mAppsGroupId(30000)
 {
     AI_LOG_FN_ENTRY();
+     AI_LOG_INFO("JD constructor inside");
 
     // Check that we can write to the temp directory
     if (access("/tmp", W_OK) != 0)
     {
-        AI_LOG_SYS_ERROR(errno, "Cannot access /tmp directory");
+        AI_LOG_SYS_ERROR(errno, "JD Cannot access /tmp directory");
     }
+     AI_LOG_INFO("JD constructor end");
 
     AI_LOG_FN_EXIT();
 }
@@ -64,6 +66,7 @@ OpenCDMPlugin::OpenCDMPlugin(const std::shared_ptr<IDobbyEnv> &env,
 OpenCDMPlugin::~OpenCDMPlugin()
 {
     AI_LOG_FN_ENTRY();
+     AI_LOG_INFO("OpenCDM Destructor");
 
     AI_LOG_FN_EXIT();
 }
@@ -77,6 +80,7 @@ OpenCDMPlugin::~OpenCDMPlugin()
  */
 std::string OpenCDMPlugin::name() const
 {
+	 AI_LOG_INFO("JD name inside");
     return mName;
 }
 
@@ -89,6 +93,7 @@ std::string OpenCDMPlugin::name() const
  */
 unsigned OpenCDMPlugin::hookHints() const
 {
+	 AI_LOG_INFO("JD hookHints inside");
     return (IDobbyPlugin::PostConstructionSync);
 }
 
@@ -119,11 +124,12 @@ bool OpenCDMPlugin::postConstruction(const ContainerId& id,
                                      const Json::Value& jsonData)
 {
     AI_LOG_FN_ENTRY();
+    AI_LOG_INFO("JD postconstruction inside");
 
     const unsigned maxBufferNum = 8;
     const unsigned mountFlags = (MS_BIND | MS_NOSUID | MS_NODEV | MS_NOEXEC);
 
-    AI_LOG_INFO("Creating OCDM buffer files");
+    AI_LOG_INFO("JD Creating OCDM buffer files");
 
     // create the buffer files on the host file system
     for (unsigned i = 0; i < maxBufferNum; i++)
@@ -136,9 +142,9 @@ bool OpenCDMPlugin::postConstruction(const ContainerId& id,
 
         // bind mount in the files
         if (!startupState->addMount(path, path, "bind", mountFlags))
-            AI_LOG_ERROR("failed to add bind mount for '%s'", path.c_str());
+            AI_LOG_ERROR("JD failed to add bind mount for '%s'", path.c_str());
         if (!startupState->addMount(adminPath, adminPath, "bind", mountFlags))
-            AI_LOG_ERROR("failed to add bind mount for '%s'", adminPath.c_str());
+            AI_LOG_ERROR("JD failed to add bind mount for '%s'", adminPath.c_str());
     }
 
     // adjust permissions on existing /tmp/ocdm socket
@@ -147,23 +153,24 @@ bool OpenCDMPlugin::postConstruction(const ContainerId& id,
     // sanity check the socket exists - if it doesn't then we don't mount
     if (access(ocdmSocketPath.c_str(), F_OK) != 0)
     {
-        AI_LOG_ERROR("missing '%s' socket, not mounting in container",
+        AI_LOG_ERROR("JD missing '%s' socket, not mounting in container",
                      ocdmSocketPath.c_str());
     }
     else
     {
         if (chmod(ocdmSocketPath.c_str(), S_IRWXU | S_IRGRP | S_IWGRP) != 0)
-            AI_LOG_SYS_ERROR(errno, "failed to change access on socket");
+            AI_LOG_SYS_ERROR(errno, "JD failed to change access on socket");
         if (chown(ocdmSocketPath.c_str(), 0, mAppsGroupId) != 0)
-            AI_LOG_SYS_ERROR(errno, "failed to change owner off socket");
+            AI_LOG_SYS_ERROR(errno, "JD failed to change owner off socket");
 
         // mount the socket within the container
         if (!startupState->addMount(ocdmSocketPath, ocdmSocketPath, "bind", mountFlags))
-            AI_LOG_ERROR("failed to add bind mount for '%s'", ocdmSocketPath.c_str());
+            AI_LOG_ERROR("JD failed to add bind mount for '%s'", ocdmSocketPath.c_str());
     }
 
     // on newer builds we may also need the /tmp/OCDM directory
     enableTmpOCDMDir(startupState);
+     AI_LOG_INFO("JD postconstruction end");
 
     AI_LOG_FN_EXIT();
     return true;
@@ -179,30 +186,32 @@ bool OpenCDMPlugin::postConstruction(const ContainerId& id,
  */
 bool OpenCDMPlugin::enableTmpOCDMDir(const std::shared_ptr<IDobbyStartState>& startupState) const
 {
+    AI_LOG_INFO("JD enableTmpOCDMDir function inside");
     static const std::string dirPath = "/tmp/OCDM";
 
     // on newer builds the OCDM files have moved to a dedicate a /tmp/OCDM
     // directory
     if ((mkdir(dirPath.c_str(), 0770) != 0) && (errno != EEXIST))
     {
-        AI_LOG_SYS_ERROR(errno, "failed to create dir @ '%s'", dirPath.c_str());
+        AI_LOG_SYS_ERROR(errno, "JD failed to create dir @ '%s'", dirPath.c_str());
         return false;
     }
 
     if (chmod(dirPath.c_str(), 0770) != 0)
     {
-        AI_LOG_SYS_ERROR(errno, "failed to change access on '%s''", dirPath.c_str());
+        AI_LOG_SYS_ERROR(errno, "JD failed to change access on '%s''", dirPath.c_str());
         return false;
     }
     if (chown(dirPath.c_str(), 0, mAppsGroupId) != 0)
     {
-        AI_LOG_SYS_ERROR(errno, "failed to change owner off '%s''", dirPath.c_str());
+        AI_LOG_SYS_ERROR(errno, "JD failed to change owner off '%s''", dirPath.c_str());
         return false;
     }
 
     // can now add to the bind mount list
     startupState->addMount(dirPath, dirPath, "bind",
                            (MS_BIND | MS_NOSUID | MS_NODEV | MS_NOEXEC));
+    AI_LOG_INFO("JD enableTmpOCDMDir function end");
      return true;
  }
 
@@ -215,6 +224,7 @@ bool OpenCDMPlugin::enableTmpOCDMDir(const std::shared_ptr<IDobbyStartState>& st
  */
 std::string OpenCDMPlugin::ocdmBufferPath(unsigned bufferNum) const
 {
+	 AI_LOG_INFO("JD ocdmBufferPath function inside");
     return "/tmp/ocdmbuffer." + std::to_string(bufferNum);
 }
 
@@ -227,6 +237,7 @@ std::string OpenCDMPlugin::ocdmBufferPath(unsigned bufferNum) const
  */
 std::string OpenCDMPlugin::ocdmBufferAdminPath(unsigned bufferNum) const
 {
+     AI_LOG_INFO("JD ocdmBufferAdminPath function inside");
     return "/tmp/ocdmbuffer." + std::to_string(bufferNum) +  ".admin";
 }
 
@@ -241,6 +252,7 @@ std::string OpenCDMPlugin::ocdmBufferAdminPath(unsigned bufferNum) const
 bool OpenCDMPlugin::writeFileIfNotExists(const std::string &filePath) const
 {
     AI_LOG_FN_ENTRY();
+    AI_LOG_INFO("JD writeFileIfNotExists function starting");
 
     // if the file already exists, don't bother recreating it
     int fileExists = access(filePath.c_str(), R_OK);
@@ -249,13 +261,16 @@ bool OpenCDMPlugin::writeFileIfNotExists(const std::string &filePath) const
     if (fileExists < 0)
     {
         // create the file if doesn't exist
+	AI_LOG_INFO("[JD][%s:%d] %s: FileName[%s]",__FILE__,__LINE__,__FUNC__,filePath.c_str());
         int fd = open(filePath.c_str(), O_CLOEXEC | O_CREAT | O_WRONLY, 0660);
+
         if (fd < 0)
         {
             AI_LOG_SYS_ERROR(errno, "failed to create file @ '%s'", filePath.c_str());
         }
         else
         {
+	     AI_LOG_INFO("[JD][%s:%d] %s: FileName[%s] FD[%d]",__FILE__,__LINE__,__FUNC__,filePath.c_str(),fd);
             // set permissions to chmod 0660 and owner root:30000
             if (fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0)
                 AI_LOG_SYS_ERROR(errno, "failed to change access on '%s''", filePath.c_str());
@@ -266,11 +281,12 @@ bool OpenCDMPlugin::writeFileIfNotExists(const std::string &filePath) const
         }
 
         AI_LOG_FN_EXIT();
+	AI_LOG_INFO("JD writeFileIfNotExists function ending one"); 
         return true;
     }
 
-    AI_LOG_INFO("%s already exists, skipping creation", filePath.c_str());
-
+    AI_LOG_INFO("%s JD already exists, skipping creation", filePath.c_str());
+    AI_LOG_INFO("JD writeFileIfNotExists function ending two");
     AI_LOG_FN_EXIT();
     return false;
 }
