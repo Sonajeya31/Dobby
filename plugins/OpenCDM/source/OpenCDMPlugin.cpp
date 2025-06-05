@@ -261,7 +261,7 @@ bool OpenCDMPlugin::writeFileIfNotExists(const std::string &filePath) const
     if (fileExists < 0)
     {
         // create the file if doesn't exist
-	AI_LOG_INFO("[JD][%s:%d] %s: FileName[%s]",__FILE__,__LINE__,__FUNC__,filePath.c_str());
+	AI_LOG_INFO("[JD][%s:%d] : FileName[%s]",__FILE__,__LINE__,filePath.c_str());
         int fd = open(filePath.c_str(), O_CLOEXEC | O_CREAT | O_WRONLY, 0660);
 
         if (fd < 0)
@@ -270,7 +270,7 @@ bool OpenCDMPlugin::writeFileIfNotExists(const std::string &filePath) const
         }
         else
         {
-	     AI_LOG_INFO("[JD][%s:%d] %s: FileName[%s] FD[%d]",__FILE__,__LINE__,__FUNC__,filePath.c_str(),fd);
+	     AI_LOG_INFO("[JD][%s:%d] : FileName[%s] FD[%d]",__FILE__,__LINE__,filePath.c_str(),fd);
             // set permissions to chmod 0660 and owner root:30000
             if (fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) != 0)
                 AI_LOG_SYS_ERROR(errno, "failed to change access on '%s''", filePath.c_str());
