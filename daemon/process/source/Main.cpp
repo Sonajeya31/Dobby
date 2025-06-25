@@ -521,7 +521,18 @@ int main(int argc, char * argv[])
     Dobby::setupLogging(logTargets);
     __ai_debug_log_level = gLogLevel;
 
-
+    char cmdStr[256];
+    FILE *fp = fopen("/tmp/perf_cmd.txt", "r");
+    if (NULL != fp) {
+	    int ret = fread(cmdStr, 1, 255, fp);
+	    if (ret) {
+		    char cmd[256+64];
+		    sprintf(cmd, cmdStr, getpid(), getpid());
+		    fprintf(stderr, "Running cmd: [%s]\n", cmd);
+		    system(cmd);
+		    }
+	    fclose(fp);
+	    }
     AI_LOG_MILESTONE("Logsona: starting Dobby daemon");
 
     // Daemonise ourselves to run in the background
@@ -623,6 +634,7 @@ int main(int argc, char * argv[])
     {
         AI_LOG_MILESTONE("stopped Dobby daemon");
     }
+    system("pidof perf | xargs kill -2");
 
     // And we're done
     AICommon::termLogging();
